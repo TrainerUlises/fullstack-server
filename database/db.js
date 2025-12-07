@@ -1,24 +1,22 @@
 /*==================================================
 /database/db.js
-
-It sets up Sequelize with Postgres database. 
-- Create a Sequelize instance to connect to the database specifying database name, username, and password.
 ==================================================*/
-/* INSTANTIATE DATABASE */ 
 
-// Import module dependencies
-const Sequelize = require('sequelize');  // Import Sequelize
-const {dbName, dbUser, dbPwd} = require('./utils/configDB');  // Import database name, username, password
+require("dotenv").config();
+const Sequelize = require('sequelize');
 
-// Display a confirmation message for opening a database connection
+// Load values directly from .env
+const dbName = process.env.DB_NAME;
+const dbUser = process.env.DB_USER;
+const dbPwd  = process.env.DB_PASSWORD;
+
 console.log('Opening database connection');
 
-// This is the Sequelize entry point for connecting to the database. 
-// Instantiate the Sequelize instance with database name, username, and password. Then connect to the database.
 const db = new Sequelize(dbName, dbUser, dbPwd, {
-  host: 'localhost',
-  dialect: 'postgres'
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  dialect: 'postgres',
+  logging: false
 });
 
-// Export Sequelize instance, which will be modified with models.
 module.exports = db;
