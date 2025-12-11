@@ -21,7 +21,7 @@ const Campus = db.define("campus", {
 
   // Used for images
   imageUrl: {
-    type: Sequelize.STRING,
+    type: Sequelize.TEXT,
     defaultValue: "https://via.placeholder.com/300",
   }
 });
