@@ -1,76 +1,86 @@
 /*==================================================
 /app.js
 
-This is the top-level (main) file for the server application.
-It is the first file to be called when starting the server application.
-It initiates all required parts such as Express, routes, database, etc.
+Top-level server file. Initializes database, seeds data,
+sets up Express routes, serves static files, and starts server.
 ==================================================*/
 
-// Load environment variables from .env file
+const path = require("path");
+
+// Load environment variables
 require("dotenv").config();
 
-/* SET UP DATABASE */
-// Import database setup utilities
-const createDB = require('./database/utils/createDB');  // Create DB if needed
-const seedDB = require('./database/utils/seedDB');      // Seed DB
-const db = require('./database');                       // Sequelize instance
+/* ================================
+   DATABASE SETUP
+================================= */
+const createDB = require("./database/utils/createDB");
+const seedDB = require("./database/utils/seedDB");
+const db = require("./database"); // Sequelize instance
 
-/* MODEL SYNCHRONIZATION & DATABASE SEEDING */
+// Sync and seed database
 const syncDatabase = async () => {
   try {
-    // Sync all models (drop tables first, then recreate)
     await db.sync({ force: true });
-    console.log('------ Synced to db --------');
+    console.log("------ Synced to db --------");
 
-    // Seed DB
     await seedDB();
-    console.log('-------- Successfully seeded db --------');
+    console.log("-------- Successfully seeded db --------");
   } catch (err) {
-    console.error('syncDB error:', err);
+    console.error("syncDB error:", err);
   }
 };
 
-/* SET UP EXPRESS APPLICATION */
+/* ================================
+   EXPRESS APPLICATION SETUP
+================================= */
 const express = require("express");
 const app = express();
 
-/* SET UP ROUTES */
-const apiRouter = require('./routes/index');
+// 🔥 Serve static files from client/public
+// This enables /images/campuses/*.jpg to load in the browser
+app.use(express.static(path.join(__dirname, "../client/public")));
 
-/* CONFIGURE EXPRESS APPLICATION */
+/* ================================
+   ROUTES
+================================= */
+const apiRouter = require("./routes/index");
+
 const configureApp = async () => {
-  // Middleware for parsing incoming data
+  // Parse JSON + URL-encoded bodies
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
-  // Attach API routes under "/api"
+  // Mount API routes
   app.use("/api", apiRouter);
 
-  // Handle 404 errors
+  // 404 handler
   app.use((req, res, next) => {
     const error = new Error("Not Found, Please Check URL!");
     error.status = 404;
     next(error);
   });
 
-  // Error-handling middleware
+  // General error handler
   app.use((err, req, res, next) => {
     console.error(err);
-    console.log(req.originalUrl);
+    console.log("Error on:", req.originalUrl);
     res.status(err.status || 500).send(err.message || "Internal server error.");
   });
 };
 
-/* START SERVER BOOT PROCESS */
+/* ================================
+   SERVER BOOT PROCESS
+================================= */
 const bootApp = async () => {
-  await createDB();          // Ensure database exists
-  await syncDatabase();      // Sync + seed
-  await configureApp();      // Configure express
+  await createDB();      // Ensure DB exists
+  await syncDatabase();  // Sync & seed
+  await configureApp();  // Configure Express
 };
 
-/* RUN SERVER BOOT */
 bootApp();
 
-/* ACTIVATE SERVER PORT */
+/* ================================
+   ACTIVATE SERVER
+================================= */
 const PORT = 5001;
 app.listen(PORT, () => console.log(`Server started on ${PORT}`));

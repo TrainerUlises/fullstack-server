@@ -21,7 +21,7 @@ const Student = db.define("student", {
   },
 
   imageUrl: {
-    type: Sequelize.STRING,
+    type: Sequelize.TEXT,
     defaultValue: "https://via.placeholder.com/150"
   },
 
